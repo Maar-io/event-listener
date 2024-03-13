@@ -8,7 +8,6 @@ const baseTokenName = process.env.BASE_TOKEN_NAME;
 const quoteToken = process.env.QUOTE_TOKEN;
 const quoteTokenName = process.env.QUOTE_TOKEN_NAME;
 const swapRouter = process.env.SWAP_ROUTER;
-const myAccount = process.env.MY_ACCOUNT;
 const rpcUrl = process.env.RPC_URL;
 
 async function getNewSwaps(pool) {
@@ -24,7 +23,6 @@ async function getNewSwaps(pool) {
         const roundedAmount1 = amount1InEther.toFixed(4);
 
         // This will be called when a Swap event is emitted
-        // if (recipient !== myAccount) return;
         console.log(`Swap event: amount0=${roundedAmount0} ${baseTokenName}, amount1=${roundedAmount1} ${quoteTokenName}, liquidity=${liquidity}, recipient= ${recipient}`);
     });
 }

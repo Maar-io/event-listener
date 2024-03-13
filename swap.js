@@ -4,13 +4,13 @@ require("dotenv").config();
 const ethers = require("ethers");
 const SWAP_ROUTER_ABI = require("./swapRouter.json");
 const swapRouter = process.env.SWAP_ROUTER;
-// const tokenOut = process.env.BASE_TOKEN;
-// const tokenIn = process.env.QUOTE_TOKEN;
+const tokenOut = process.env.BASE_TOKEN;
+const tokenIn = process.env.QUOTE_TOKEN;
 
 const rpcUrl = process.env.RPC_URL;
 const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
 
-async function swap(token0, token1, amountInWei, provider, signer) {
+async function swap(amountInWei, signer) {
   // Create contract instance for the SwapRouter contract
   const router = new ethers.Contract(
     swapRouter,
@@ -26,13 +26,9 @@ async function swap(token0, token1, amountInWei, provider, signer) {
   // const amountOutMinimum = ethers.utils.parseUnits( process.env.MIN_OUT, "ether");
   // const sqrtPriceLimitX96 = ethers.BigNumber.from("0");
 
-  const tokenIn = "0xEaFAF3EDA029A62bCbE8a0C9a4549ef0fEd5a400"; //LSBY
-const tokenOut = "0x1CD8854309097808Fea4668d9dcd7e3A43FB0565"; //BRR
-const fee = 3000;
-const recipient = "0x911d82b108804A18022d0A2621B2Fc608DEF6FCA";
-const amountIn = ethers.BigNumber.from("0x1bc16d674ec80000"); // 2 LSBY
-const amountOutMinimum = ethers.BigNumber.from("0x9CF90C1FDEDDB865C"); // BRR
-const sqrtPriceLimitX96 = ethers.BigNumber.from("0x00");
+const fee = 10000;
+const amountOutMinimum = ethers.BigNumber.from("0"); // BRR
+const sqrtPriceLimitX96 = ethers.BigNumber.from('0');
 
   // Send the swap transaction
   try {
@@ -48,9 +44,9 @@ const sqrtPriceLimitX96 = ethers.BigNumber.from("0x00");
       tokenIn: tokenIn,
       tokenOut: tokenOut,
       fee: fee,
-      recipient: recipient,
+      recipient: signer.address,
       deadline: deadline,
-      amountIn: amountIn,
+      amountIn: amountInWei,
       amountOutMinimum: amountOutMinimum,
       sqrtPriceLimitX96: sqrtPriceLimitX96,
     });
@@ -85,38 +81,30 @@ const sqrtPriceLimitX96 = ethers.BigNumber.from("0x00");
 
 async function approveToken(tokenIn, amount, signer) {
   try {
-    const IERC20_ABI = [
-      "function approve(address spender, uint256 amount) public returns (bool)",
-      "function allowance(address owner, address spender) public view returns (uint256)",
-    ];
-    const tokenInContract = new ethers.Contract(
-      tokenIn,
-      IERC20_ABI,
-      provider
-    ).connect(signer);
-    const approvalTx = await tokenInContract.approve(swapRouter, amount);
-    await approvalTx.wait();
-    console.log("Token approved successfully");
-    console.log(
-      "Alowance:",
-      await tokenInContract.allowance(signer.address, swapRouter)
-    );
+      const IERC20_ABI = [
+          "function approve(address spender, uint256 amount) public returns (bool)",
+          "function allowance(address owner, address spender) public view returns (uint256)"
+      ];
+      const tokenInContract = new ethers.Contract(tokenIn, IERC20_ABI, provider).connect(signer);
+      const approvalTx = await tokenInContract.approve(swapRouter, amount);
+      await approvalTx.wait();
+      console.log('Token approved successfully');
+      const allowance = await tokenInContract.allowance(signer.address, swapRouter);
+      const allowanceInDecimal = ethers.utils.formatUnits(allowance, 18);
+      console.log("allowance set to:", allowanceInDecimal);
   } catch (error) {
-    console.error("An error occurred while approving the token:", error);
+      console.error("An error occurred while approving the token:", error);
   }
 }
 module.exports = swap;
 
 async function main() {
-  const tokenIn = "0xEaFAF3EDA029A62bCbE8a0C9a4549ef0fEd5a400";
-  const tokenOut = "0x1CD8854309097808Fea4668d9dcd7e3A43FB0565";
-
   const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
-  // const amountIn = ethers.utils.parseUnits( process.env.AMOUNT, "ether");
-  const amountIn = ethers.BigNumber.from("0x1bc16d674ec80000");
+  const amountIn = ethers.utils.parseUnits( process.env.AMOUNT, "ether");
+  // const amountIn = ethers.utils.parseUnits('2', 'ether');
 
   await approveToken(tokenIn, amountIn, signer);
-  swap(tokenIn, tokenOut, amountIn, provider, signer);
+  swap(amountIn, signer);
 }
 main().catch(console.error);
 
