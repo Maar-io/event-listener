@@ -9,9 +9,8 @@ const tokenOutName = process.env.TOKEN_OUT_NAME;
 const tokenIn = process.env.TOKEN_IN;
 
 const rpcUrl = process.env.RPC_URL;
-const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
 
-async function swap(amountInWei, signer) {
+async function swap(amountInWei, signer, provider) {
   // Create contract instance for the SwapRouter contract
   const router = new ethers.Contract(
     swapRouter,
@@ -26,7 +25,7 @@ async function swap(amountInWei, signer) {
   ); // 20 minutes from the current Unix time
 
   const fee = 10000;
-  const amountOutMinimum = ethers.BigNumber.from("0"); // BRR
+  const amountOutMinimum = ethers.BigNumber.from(process.env.AMOUNT_OUT_MINIMUM);
   const sqrtPriceLimitX96 = ethers.BigNumber.from('0');
 
   // Send the swap transaction
@@ -58,7 +57,7 @@ async function swap(amountInWei, signer) {
   }
 }
 
-async function approveToken(tokenIn, amount, signer) {
+async function approveToken(tokenIn, amount, signer, provider) {
   try {
     const IERC20_ABI = [
       "function approve(address spender, uint256 amount) public returns (bool)",
@@ -75,7 +74,7 @@ async function approveToken(tokenIn, amount, signer) {
   }
 }
 
-async function tokenBalance(token, userAddress) {
+async function tokenBalance(token, userAddress, provider) {
   const tokenContract = new ethers.Contract(token, ["function balanceOf(address) view returns (uint)"], provider);
   const balance = await tokenContract.balanceOf(userAddress);
   const balanceInDecimal = ethers.utils.formatUnits(balance, 18);
@@ -84,16 +83,18 @@ async function tokenBalance(token, userAddress) {
   console.log(`ℹ️ Your ${tokenOutName} balance is ${formattedBalance}`);
 }
 
-module.exports = swap;
+module.exports = { swap, tokenBalance, approveToken };
 
-async function main() {
-  const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
-  const amountIn = ethers.utils.parseUnits(process.env.AMOUNT, "ether");
+// You can call this swap function from CLI by running: node swap.js
+// async function main() {
+//   const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
+//   const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+//   const amountIn = ethers.utils.parseUnits(process.env.AMOUNT_IN, "ether");
 
-  await tokenBalance(tokenOut, signer.address);
-  await approveToken(tokenIn, amountIn, signer);
-  await swap(amountIn, signer);
-  await tokenBalance(tokenOut, signer.address);
-}
-main().catch(console.error);
+//   await tokenBalance(tokenOut, signer.address, provider);
+//   await approveToken(tokenIn, amountIn, signer, provider);
+//   await swap(amountIn, signer, provider);
+//   await tokenBalance(tokenOut, signer.address, provider);
+// }
+// main().catch(console.error);
 

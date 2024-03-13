@@ -3,10 +3,10 @@
 const ethers = require("ethers");
 const POOL_ABI = require("./pool.json");
 require("dotenv").config();
-const baseToken = process.env.TOKEN_OUT;
-const baseTokenName = process.env.TOKEN_OUT_NAME;
-const quoteToken = process.env.TOKEN_IN;
-const quoteTokenName = process.env.TOKEN_IN_NAME;
+const tokenOut = process.env.TOKEN_OUT;
+const tokenOutName = process.env.TOKEN_OUT_NAME;
+const tokenIn = process.env.TOKEN_IN;
+const tokenInName = process.env.TOKEN_IN_NAME;
 const swapRouter = process.env.SWAP_ROUTER;
 const rpcUrl = process.env.RPC_URL;
 
@@ -23,7 +23,7 @@ async function getNewSwaps(pool) {
         const roundedAmount1 = amount1InEther.toFixed(4);
 
         // This will be called when a Swap event is emitted
-        console.log(`Swap event: amount0=${roundedAmount0} ${baseTokenName}, amount1=${roundedAmount1} ${quoteTokenName}, liquidity=${liquidity}, recipient= ${recipient}`);
+        console.log(`Swap event: amount0=${roundedAmount0} ${tokenOutName}, amount1=${roundedAmount1} ${tokenInName}, liquidity=${liquidity}, recipient= ${recipient}`);
     });
 }
 
