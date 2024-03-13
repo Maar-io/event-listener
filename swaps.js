@@ -25,8 +25,8 @@ async function getNewSwaps() {
         const roundedAmount1 = amount1InEther.toFixed(4);
 
         // This will be called when a Swap event is emitted
-        if (recipient !== myAccount) return;
-        console.log(`Swap event: amount0=${roundedAmount0} ${baseTokenName}, amount1=${roundedAmount1} ${quoteTokenName}, liquidity=${liquidity}, recipient= YOU,`);
+        // if (recipient !== myAccount) return;
+        console.log(`Swap event: amount0=${roundedAmount0} ${baseTokenName}, amount1=${roundedAmount1} ${quoteTokenName}, liquidity=${liquidity}, recipient= ${recipient},`);
     });
 }
 
