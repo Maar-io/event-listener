@@ -29,7 +29,7 @@ async function swap(tokenIn, tokenOut, amountIn, provider, signer) {
     console.log(amountInWei);
 
 
-    const fee = ethers.BigNumber.from('3000');
+    const fee = 3000;
     const amountOutMinimum = ethers.BigNumber.from('150000000000000000');
     const sqrtPriceLimitX96 = ethers.BigNumber.from('0');
 
@@ -75,6 +75,21 @@ async function swap(tokenIn, tokenOut, amountIn, provider, signer) {
 
 }
 
+async function approveToken(tokenIn, amount, signer) {
+    try {
+        const IERC20_ABI = [
+            "function approve(address spender, uint256 amount) public returns (bool)",
+            "function allowance(address owner, address spender) public view returns (uint256)"
+        ];
+        const tokenInContract = new ethers.Contract(tokenIn, IERC20_ABI, provider).connect(signer);
+        const approvalTx = await tokenInContract.approve(swapRouter, amount);
+        await approvalTx.wait();
+        console.log('Token approved successfully');
+        console.log("HHHHH", await tokenInContract.allowance(signer.address, swapRouter));
+    } catch (error) {
+        console.error("An error occurred while approving the token:", error);
+    }
+}
 module.exports = swap;
 
 async function main() {
@@ -82,6 +97,7 @@ async function main() {
     const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
     const amountIn = ethers.utils.parseUnits('1', 'ether');
 
+    await approveToken(tokenIn, amountIn, signer);
     swap(tokenIn, tokenOut, amountIn, provider, signer);
 }
 main().catch(console.error);
