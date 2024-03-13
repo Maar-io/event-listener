@@ -4,14 +4,13 @@ require("dotenv").config();
 const ethers = require("ethers");
 const SWAP_ROUTER_ABI = require("./swapRouter.json");
 const swapRouter = process.env.SWAP_ROUTER;
-const tokenOut = process.env.BASE_TOKEN;
-const tokenIn = process.env.QUOTE_TOKEN;
-// const amountIn = process.env.AMOUNT;
+// const tokenOut = process.env.BASE_TOKEN;
+// const tokenIn = process.env.QUOTE_TOKEN;
 
 const rpcUrl = process.env.RPC_URL;
 const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
 
-async function swap(tokenIn, tokenOut, amountInWei, provider, signer) {
+async function swap(token0, token1, amountInWei, provider, signer) {
   // Create contract instance for the SwapRouter contract
   const router = new ethers.Contract(
     swapRouter,
@@ -23,9 +22,17 @@ async function swap(tokenIn, tokenOut, amountInWei, provider, signer) {
   const deadline = ethers.BigNumber.from(
     Math.floor(Date.now() / 1000) + 60 * 20
   ); // 20 minutes from the current Unix time
-  const fee = 3000;
-  const amountOutMinimum = ethers.BigNumber.from("150000000000000000");
-  const sqrtPriceLimitX96 = ethers.BigNumber.from("0");
+  // const fee = 3000;
+  // const amountOutMinimum = ethers.utils.parseUnits( process.env.MIN_OUT, "ether");
+  // const sqrtPriceLimitX96 = ethers.BigNumber.from("0");
+
+  const tokenIn = "0xEaFAF3EDA029A62bCbE8a0C9a4549ef0fEd5a400"; //LSBY
+const tokenOut = "0x1CD8854309097808Fea4668d9dcd7e3A43FB0565"; //BRR
+const fee = 3000;
+const recipient = "0x911d82b108804A18022d0A2621B2Fc608DEF6FCA";
+const amountIn = ethers.BigNumber.from("0x1bc16d674ec80000"); // 2 LSBY
+const amountOutMinimum = ethers.BigNumber.from("0x9CF90C1FDEDDB865C"); // BRR
+const sqrtPriceLimitX96 = ethers.BigNumber.from("0x00");
 
   // Send the swap transaction
   try {
@@ -41,9 +48,9 @@ async function swap(tokenIn, tokenOut, amountInWei, provider, signer) {
       tokenIn: tokenIn,
       tokenOut: tokenOut,
       fee: fee,
-      recipient: signer.address,
+      recipient: recipient,
       deadline: deadline,
-      amountIn: amountInWei,
+      amountIn: amountIn,
       amountOutMinimum: amountOutMinimum,
       sqrtPriceLimitX96: sqrtPriceLimitX96,
     });
@@ -91,7 +98,7 @@ async function approveToken(tokenIn, amount, signer) {
     await approvalTx.wait();
     console.log("Token approved successfully");
     console.log(
-      "HHHHH",
+      "Alowance:",
       await tokenInContract.allowance(signer.address, swapRouter)
     );
   } catch (error) {
@@ -101,8 +108,12 @@ async function approveToken(tokenIn, amount, signer) {
 module.exports = swap;
 
 async function main() {
+  const tokenIn = "0xEaFAF3EDA029A62bCbE8a0C9a4549ef0fEd5a400";
+  const tokenOut = "0x1CD8854309097808Fea4668d9dcd7e3A43FB0565";
+
   const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
-  const amountIn = ethers.utils.parseUnits("1", "ether");
+  // const amountIn = ethers.utils.parseUnits( process.env.AMOUNT, "ether");
+  const amountIn = ethers.BigNumber.from("0x1bc16d674ec80000");
 
   await approveToken(tokenIn, amountIn, signer);
   swap(tokenIn, tokenOut, amountIn, provider, signer);

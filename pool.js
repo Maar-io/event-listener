@@ -11,7 +11,6 @@ const baseTokenName = process.env.BASE_TOKEN_NAME;
 const quoteToken = process.env.QUOTE_TOKEN;
 const quoteTokenName = process.env.QUOTE_TOKEN_NAME;
 const swapRouter = process.env.SWAP_ROUTER;
-const myAccount = process.env.MY_ACCOUNT;
 const rpcUrl = process.env.RPC_URL;
 const factory = process.env.FACTORY;
 const tokenOut = process.env.BASE_TOKEN;
@@ -76,21 +75,6 @@ function verifyEnv() {
 
   if (!quoteTokenName || !baseTokenName) {
     throw new Error("Please set token names .env file")
-  }
-}
-
-function foo() {
-  const ok = false
-  const token0 = '0x1607D9C58466D6EFE8B0d969f41F3931D69bBCe1'.toUpperCase()
-  const token1 = '0xd2480162Aa7F02Ead7BF4C127465446150D58452'.toUpperCase()
-  const b = baseToken.toUpperCase()
-  const q = quoteToken.toUpperCase()
-
-
-  if ((token0 === b || token0 === q)
-    && (token1 === b || token1 === q)) {
-    const ok = true
-    console.log(`✅ Use new pool`);
   }
 }
 
