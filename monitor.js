@@ -3,10 +3,10 @@
 const ethers = require("ethers");
 const POOL_ABI = require("./pool.json");
 require("dotenv").config();
-const baseToken = process.env.BASE_TOKEN;
-const baseTokenName = process.env.BASE_TOKEN_NAME;
-const quoteToken = process.env.QUOTE_TOKEN;
-const quoteTokenName = process.env.QUOTE_TOKEN_NAME;
+const baseToken = process.env.TOKEN_OUT;
+const baseTokenName = process.env.TOKEN_OUT_NAME;
+const quoteToken = process.env.TOKEN_IN;
+const quoteTokenName = process.env.TOKEN_IN_NAME;
 const swapRouter = process.env.SWAP_ROUTER;
 const rpcUrl = process.env.RPC_URL;
 

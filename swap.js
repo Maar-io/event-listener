@@ -4,8 +4,9 @@ require("dotenv").config();
 const ethers = require("ethers");
 const SWAP_ROUTER_ABI = require("./swapRouter.json");
 const swapRouter = process.env.SWAP_ROUTER;
-const tokenOut = process.env.BASE_TOKEN;
-const tokenIn = process.env.QUOTE_TOKEN;
+const tokenOut = process.env.TOKEN_OUT;
+const tokenOutName = process.env.TOKEN_OUT_NAME;
+const tokenIn = process.env.TOKEN_IN;
 
 const rpcUrl = process.env.RPC_URL;
 const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
@@ -18,28 +19,26 @@ async function swap(amountInWei, signer) {
     provider
   ).connect(signer);
 
+
   // Define the transaction parameters
   const deadline = ethers.BigNumber.from(
     Math.floor(Date.now() / 1000) + 60 * 20
   ); // 20 minutes from the current Unix time
-  // const fee = 3000;
-  // const amountOutMinimum = ethers.utils.parseUnits( process.env.MIN_OUT, "ether");
-  // const sqrtPriceLimitX96 = ethers.BigNumber.from("0");
 
-const fee = 10000;
-const amountOutMinimum = ethers.BigNumber.from("0"); // BRR
-const sqrtPriceLimitX96 = ethers.BigNumber.from('0');
+  const fee = 10000;
+  const amountOutMinimum = ethers.BigNumber.from("0"); // BRR
+  const sqrtPriceLimitX96 = ethers.BigNumber.from('0');
 
   // Send the swap transaction
   try {
-    console.log("tokenIn:", tokenIn);
-    console.log("tokenOut:", tokenOut);
-    console.log("fee:", fee);
-    console.log("recipient:", signer.address);
-    console.log("deadline:", deadline);
-    console.log("amountInWei:", amountInWei);
-    console.log("amountOutMinimum:", amountOutMinimum);
-    console.log("sqrtPriceLimitX96:", sqrtPriceLimitX96);
+    // console.log("tokenIn:", tokenIn);
+    // console.log("tokenOut:", tokenOut);
+    // console.log("fee:", fee);
+    // console.log("recipient:", signer.address);
+    // console.log("deadline:", deadline);
+    // console.log("amountInWei:", amountInWei);
+    // console.log("amountOutMinimum:", amountOutMinimum);
+    // console.log("sqrtPriceLimitX96:", sqrtPriceLimitX96);
     const tx = await router.exactInputSingle({
       tokenIn: tokenIn,
       tokenOut: tokenOut,
@@ -52,59 +51,49 @@ const sqrtPriceLimitX96 = ethers.BigNumber.from('0');
     });
     // Wait for the transaction to be mined
     const receipt = await tx.wait();
-    console.log(`Transaction hash: ${tx.hash}`);
+    console.log(`✅ Swap Success, Transaction hash: ${tx.hash}`);
 
-    // Print all the event logs from the transaction receipt
-    console.log("All events from transaction receipt:");
-    receipt.events?.forEach((event, index) => {
-      console.log(`Event ${index + 1}: ${event.event}`);
-      console.log(`Event details: ${JSON.stringify(event.args, null, 2)}`);
-    });
-
-    // Find the Swap event
-    const swapEvent = receipt.events?.find((e) => e.event === "Swap");
-
-    // Check if the Swap event was emitted
-    if (swapEvent) {
-      console.log("Swap executed successfully");
-      console.log(
-        `Swap event details: ${JSON.stringify(swapEvent.args, null, 2)}`
-      );
-    } else {
-      console.log("Swap event not found");
-    }
   } catch (error) {
     console.error("An error occurred while executing the transaction:", error);
   }
-  console.log("THE END");
 }
 
 async function approveToken(tokenIn, amount, signer) {
   try {
-      const IERC20_ABI = [
-          "function approve(address spender, uint256 amount) public returns (bool)",
-          "function allowance(address owner, address spender) public view returns (uint256)"
-      ];
-      const tokenInContract = new ethers.Contract(tokenIn, IERC20_ABI, provider).connect(signer);
-      const approvalTx = await tokenInContract.approve(swapRouter, amount);
-      await approvalTx.wait();
-      console.log('Token approved successfully');
-      const allowance = await tokenInContract.allowance(signer.address, swapRouter);
-      const allowanceInDecimal = ethers.utils.formatUnits(allowance, 18);
-      console.log("allowance set to:", allowanceInDecimal);
+    const IERC20_ABI = [
+      "function approve(address spender, uint256 amount) public returns (bool)",
+      "function allowance(address owner, address spender) public view returns (uint256)"
+    ];
+    const tokenInContract = new ethers.Contract(tokenIn, IERC20_ABI, provider).connect(signer);
+    const approvalTx = await tokenInContract.approve(swapRouter, amount);
+    await approvalTx.wait();
+    const allowance = await tokenInContract.allowance(signer.address, swapRouter);
+    const allowanceInDecimal = ethers.utils.formatUnits(allowance, 18);
+    console.log(`✅ Allowance for swapRouter set to: ${allowanceInDecimal}`);
   } catch (error) {
-      console.error("An error occurred while approving the token:", error);
+    console.error("An error occurred while approving the token:", error);
   }
 }
+
+async function tokenBalance(token, userAddress) {
+  const tokenContract = new ethers.Contract(token, ["function balanceOf(address) view returns (uint)"], provider);
+  const balance = await tokenContract.balanceOf(userAddress);
+  const balanceInDecimal = ethers.utils.formatUnits(balance, 18);
+  const wholeNumberBalance = Math.floor(balanceInDecimal); // Round down to nearest whole number
+  const formattedBalance = wholeNumberBalance.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."); // Format with dot every 3 digits
+  console.log(`ℹ️ Your ${tokenOutName} balance is ${formattedBalance}`);
+}
+
 module.exports = swap;
 
 async function main() {
   const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
-  const amountIn = ethers.utils.parseUnits( process.env.AMOUNT, "ether");
-  // const amountIn = ethers.utils.parseUnits('2', 'ether');
+  const amountIn = ethers.utils.parseUnits(process.env.AMOUNT, "ether");
 
+  await tokenBalance(tokenOut, signer.address);
   await approveToken(tokenIn, amountIn, signer);
-  swap(amountIn, signer);
+  await swap(amountIn, signer);
+  await tokenBalance(tokenOut, signer.address);
 }
 main().catch(console.error);
 

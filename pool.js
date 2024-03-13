@@ -6,15 +6,15 @@ require("dotenv").config();
 const assert = require('assert');
 
 // Environment variables
-const baseToken = process.env.BASE_TOKEN;
-const baseTokenName = process.env.BASE_TOKEN_NAME;
-const quoteToken = process.env.QUOTE_TOKEN;
-const quoteTokenName = process.env.QUOTE_TOKEN_NAME;
+const baseToken = process.env.TOKEN_OUT;
+const baseTokenName = process.env.TOKEN_OUT_NAME;
+const quoteToken = process.env.TOKEN_IN;
+const quoteTokenName = process.env.TOKEN_IN_NAME;
 const swapRouter = process.env.SWAP_ROUTER;
 const rpcUrl = process.env.RPC_URL;
 const factory = process.env.FACTORY;
-const tokenOut = process.env.BASE_TOKEN;
-const tokenIn = process.env.QUOTE_TOKEN;
+const tokenOut = process.env.TOKEN_OUT;
+const tokenIn = process.env.TOKEN_IN;
 
 // Create a provider
 const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
