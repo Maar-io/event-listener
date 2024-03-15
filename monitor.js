@@ -23,8 +23,14 @@ async function getNewSwaps(pool) {
         const roundedAmount1 = amount1InEther.toFixed(4);
 
         // This will be called when a Swap event is emitted
-        console.log(`Swap event: amount0=${roundedAmount0} ${tokenOutName}, amount1=${roundedAmount1} ${tokenInName}, liquidity=${liquidity}, recipient= ${recipient}`);
-    });
+        let emoji = '';
+        if (roundedAmount0 < 0) {
+          emoji = '🟢'; // Green circle emoji
+        } else if (roundedAmount0 > 0) {
+          emoji = '🔴'; // Red circle emoji
+        }
+        
+        console.log(`${emoji} Swap event: amount0=${roundedAmount0} ${tokenOutName}, amount1=${roundedAmount1} ${tokenInName}, liquidity=${liquidity}, recipient= ${recipient}`);    });
 }
 
 async function main() {
